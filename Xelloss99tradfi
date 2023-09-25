@@ -11,7 +11,6 @@ blueprint:
         device:
           integration: zha
           manufacturer: IKEA of Sweden
-          model: TRADFRI on/off switch
     button_on_short:
       name: On button press
       description: Action to run on press of On button
