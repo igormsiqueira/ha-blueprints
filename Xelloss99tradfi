@@ -1,93 +1,121 @@
 blueprint:
-  name: ZHA - IKEA Tradfri Shortcut button
-  description: Control anything with the ikea shortcut button
+  name: ZHA - IKEA five button remote
+  description: |
+    Control anything using IKEA five button remote
+
   domain: automation
   input:
-    shortcut_button:
-      name: Device
-      description: Select an IKEA shortcut button
+    remote:
+      name: Remote
+      description: IKEA remote to use
       selector:
         device:
           integration: zha
           manufacturer: IKEA of Sweden
-          model: TRADFRI SHORTCUT Button
-    button_short:
-      name: Single click
-      description: "Choose action(s) when short pressed:"
+          model: TRADFRI remote control
+    button_on_off:
+      name: On off button press
+      description: Action to run on press of on off button
       default: []
       selector:
-        action: {}
-    button_double:
-      name: Double click
-      description: "Choose action(s) when double pressed:"
+        action:
+    button_brightness_up_short:
+      name: Brightness up button - short press
+      description: Action to run on short brightness up press
       default: []
       selector:
-        action: {}
-    button_long:
-      name: Long click
-      description: "Choose action(s) when long pressed:"
+        action:
+    button_brightness_up_long:
+      name: Brightness up button - long press
+      description: Action to run on long brightness up press
       default: []
       selector:
-        action: {}
-  source_url: https://community.home-assistant.io/t/zha-ikea-tradfri-shortcut-button/261936
-mode: single
+        action:
+    button_brightness_down_short:
+      name: Brightness down button - short press
+      description: Action to run on short brightness down press
+      default: []
+      selector:
+        action:
+    button_brightness_down_long:
+      name: Brightness down button - long press
+      description: Action to run on long brightness down press
+      default: []
+      selector:
+        action:
+    button_left_short:
+      name: Left button - short press
+      description: Action to run on short left button press
+      default: []
+      selector:
+        action:
+    button_left_long:
+      name: Left button - long press
+      description: Action to run on long left button press
+      default: []
+      selector:
+        action:
+    button_right_short:
+      name: Right button - short press
+      description: Action to run on short right button press
+      default: []
+      selector:
+        action:
+    button_right_long:
+      name: Right button - long press
+      description: Action to run on long right button press
+      default: []
+      selector:
+        action:
+
+mode: restart
 max_exceeded: silent
+
 trigger:
   - platform: event
     event_type: zha_event
     event_data:
-      device_id: !input 'shortcut_button'
+      device_id: !input remote
+
 action:
   - variables:
-    command: '{{ trigger.event.data.command }}'
-    cluster_id: '{{ trigger.event.data.cluster_id }}'
-    endpoint_id: '{{ trigger.event.data.endpoint_id }}'
-    args: '{{ trigger.event.data.args }}'
+      command: "{{ trigger.event.data.command }}"
+      cluster_id: "{{ trigger.event.data.cluster_id }}"
+      endpoint_id: "{{ trigger.event.data.endpoint_id }}"
+      args: "{{ trigger.event.data.args }}"
   - choose:
-
-  # short click
-  - conditions:
-    - '{{ endpoint_id == 1 }}'
-    - '{{ cluster_id == 6 }}'
-    - '{{ command == ''on'' }}'
-    sequence:
-
-    # check for a second click
-    - wait_for_trigger:
-      - platform: event
-        event_type: zha_event
-        event_data:
-          device_id: !input 'shortcut_button'
-          endpoint_id: 1
-          cluster_id: 6
-          command: "on"
-      timeout:
-        milliseconds: 600
-      continue_on_timeout: true
-    - choose:
-      # if single click
       - conditions:
-        - condition: template
-          value_template: '{{ not wait.trigger }}'
-        sequence: !input 'button_short'
-      # else double click
-      default: !input 'button_double'
+          - "{{ command == 'toggle' }}"
+        sequence: !input button_on_off
 
-  # long click
-  - conditions:
-    - '{{ endpoint_id == 1 }}'
-    - '{{ cluster_id == 8 }}'
-    - '{{ command == ''move_with_on_off'' }}'
-    sequence:
-    - choose:
-      default: !input 'button_long'
-    - wait_for_trigger:
-      - platform: event
-        event_type: zha_event
-        event_data:
-          device_id: !input 'shortcut_button'
-          endpoint_id: 1
-          cluster_id: 8
-          command: stop
-      timeout:
-        seconds: 10
+      - conditions:
+          - "{{ command == 'step_with_on_off' }}"
+        sequence: !input button_brightness_up_short
+
+      - conditions:
+          - "{{ command == 'move_with_on_off' }}"
+        sequence: !input button_brightness_up_long
+
+      - conditions:
+          - "{{ command == 'step' }}"
+        sequence: !input button_brightness_down_short
+
+      - conditions:
+          - "{{ command == 'move' }}"
+        sequence: !input button_brightness_down_long
+
+      - conditions:
+          - "{{ command == 'press' }}"
+        sequence: !input button_left_short
+
+      - conditions:
+          - "{{ command == 'hold' }}"
+        sequence: !input button_left_long
+
+      - conditions:
+          - "{{ command == 'press' }}"
+        sequence: !input button_right_short
+
+      - conditions:
+          - "{{ command == 'hold' }}"
+        sequence: !input button_right_long
